@@ -38,5 +38,5 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
-    re_path(r'^.*$', views.custom_404_view, name='catch_all_404'),
+    re_path(r'^(?!media/|static/).*$', views.custom_404_view, name='catch_all_404'),
 ]
