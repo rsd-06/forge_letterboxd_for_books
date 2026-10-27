@@ -31,9 +31,9 @@ python manage.py runserver
 ## 📸 Visual Showcase & User Journey Clip
 
 ### 🎥 Interactive User Journey Clip
-![User Flow Demo](static/screenshots/user_flow_demo.webp)
+![User Flow Demo](static/screenshots/user_flow_demo.gif)
 
-*Interactive session demonstrating the refreshed warm caramel aesthetic, minimal dropdown FAQs, 5-star rating with spoiler mask, and the Ask AI companion with prefilled suggestion pills.*
+*Interactive session demonstrating the refreshed warm caramel aesthetic, minimal dropdown FAQs, 5-star rating with spoiler mask, and the Ask AI companion with prefilled suggestion pills. (Also available as [animated WebP](static/screenshots/user_flow_demo.webp)).*
 
 ### 🖼️ Key Screenshots
 
