@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Frequently Asked Questions (FAQ) — Bookboxd{% endblock %}
+
+{% block content %}
+<div class="space-y-8 max-w-5xl mx-auto">
+
+    <!-- Header & Search -->
+    <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-parchment-200 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <span class="text-xs uppercase tracking-widest bg-amber-100 text-amber-800 font-bold px-2.5 py-0.5 rounded-full border border-amber-200">
+                    Knowledge Base ({{ total_faqs_count }} Questions)
+                </span>
+                <h1 class="text-2xl sm:text-4xl font-serif font-bold text-stone-900 mt-2">
+                    Frequently Asked Questions
+                </h1>
+                <p class="text-sm text-stone-600 mt-1">
+                    Everything you need to know about ratings, spoiler tags, readlists, social feeds, Gemini AI, and error codes.
+                </p>
+            </div>
+
+            <a href="{% url 'support_tickets' %}"
+               class="inline-flex items-center gap-2 bg-bookbrown-800 hover:bg-bookbrown-700 text-amber-400 font-bold text-xs px-4 py-2.5 rounded-xl shadow transition self-start sm:self-auto">
+                <span>🎫 Open Support Ticket</span>
+            </a>
+        </div>
+
+        <!-- Search input -->
+        <form action="{% url 'faq' %}" method="GET" class="relative pt-2">
+            <input type="text" name="q" value="{{ query }}" placeholder="Search questions (e.g. spoilers, 5-star rating, custom shelves, error 404, gemini)..."
+                   class="w-full bg-parchment-50 border border-stone-300 rounded-xl px-4 py-3 pl-11 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white transition">
+            <svg class="w-5 h-5 text-stone-400 absolute left-3.5 top-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+            {% if current_category %}
+                <input type="hidden" name="category" value="{{ current_category }}">
+            {% endif %}
+        </form>
+
+        <!-- Category Filter Pills -->
+        <div class="flex flex-wrap gap-2 pt-1 text-xs">
+            <a href="{% url 'faq' %}" class="px-3 py-1 rounded-full border transition {% if not current_category %}bg-bookbrown-800 text-amber-400 border-bookbrown-800 font-bold{% else %}bg-parchment-100 text-stone-700 hover:bg-parchment-200 border-parchment-200{% endif %}">
+                All Topics
+            </a>
+            {% for cat_val, cat_label in categories %}
+                <a href="{% url 'faq' %}?category={{ cat_val }}" class="px-3 py-1 rounded-full border transition {% if current_category == cat_val %}bg-bookbrown-800 text-amber-400 border-bookbrown-800 font-bold{% else %}bg-parchment-100 text-stone-700 hover:bg-parchment-200 border-parchment-200{% endif %}">
+                    {{ cat_label }}
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- FAQs Accordion List -->
+    <div class="space-y-4">
+        {% for faq in faqs %}
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-parchment-200 hover:border-amber-300 transition space-y-3">
+                <div class="flex items-start justify-between gap-4">
+                    <div class="space-y-1">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                            {{ faq.get_category_display }}
+                        </span>
+                        <h3 class="text-base sm:text-lg font-serif font-bold text-stone-900 leading-snug">
+                            {{ faq.question }}
+                        </h3>
+                    </div>
+
+                    <!-- Ask Assistant shortcut button for this FAQ -->
+                    <button type="button"
+                            onclick="askAssistantAbout('{{ faq.question|escapejs }}')"
+                            class="flex-shrink-0 text-[11px] bg-parchment-100 hover:bg-amber-100 text-amber-900 border border-amber-300 font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1 transition">
+                        <span>✨ Ask AI</span>
+                    </button>
+                </div>
+
+                <div class="text-xs sm:text-sm text-stone-700 leading-relaxed border-t border-stone-100 pt-2.5">
+                    {{ faq.answer }}
+                </div>
+            </div>
+        {% empty %}
+            <div class="bg-white p-12 text-center rounded-2xl border border-parchment-200 space-y-3">
+                <p class="text-stone-500 text-sm">No FAQs matched your search query.</p>
+                <a href="{% url 'faq' %}" class="inline-block text-xs font-bold text-amber-800 underline">
+                    Clear filters & view all FAQs
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Bottom Help Banner -->
+    <div class="bg-gradient-to-r from-bookbrown-900 to-bookbrown-800 text-stone-100 p-6 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-md">
+        <div>
+            <h4 class="font-serif font-bold text-amber-400 text-base">Still have questions or encountered a bug?</h4>
+            <p class="text-xs text-stone-300 mt-0.5">Our Gemini AI Assistant is available 24/7, or you can file a formal support ticket.</p>
+        </div>
+        <div class="flex gap-3">
+            <button onclick="document.getElementById('ai-chat-widget').classList.remove('hidden');" class="bg-amber-500 hover:bg-amber-600 text-stone-950 font-bold text-xs px-4 py-2 rounded-lg transition">
+                Open Chat Widget
+            </button>
+            <a href="{% url 'support_tickets' %}" class="bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-600 font-semibold text-xs px-4 py-2 rounded-lg transition">
+                File Ticket &rarr;
+            </a>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function askAssistantAbout(question) {
+        const widget = document.getElementById('ai-chat-widget');
+        const input = document.getElementById('ai-chat-input');
+        const sendBtn = document.getElementById('ai-chat-send');
+        if (widget && input) {
+            widget.classList.remove('hidden');
+            input.value = question;
+            if (sendBtn) {
+                setTimeout(() => sendBtn.click(), 200);
+            }
+        }
+    }
+</script>
+{% endblock %}

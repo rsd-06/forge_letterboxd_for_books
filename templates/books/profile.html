@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block title %}{{ profile_user.username }}'s Profile & Books — Bookboxd{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+
+    <!-- Profile Header Card -->
+    <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-parchment-200">
+        <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+            
+            <img src="{{ profile_user.profile.display_avatar }}" alt="{{ profile_user.username }}"
+                 class="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-parchment-100 object-cover shadow-md bg-stone-100">
+
+            <div class="flex-1 text-center sm:text-left space-y-3">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <h1 class="text-2xl sm:text-3xl font-serif font-bold text-stone-900">
+                            {{ profile_user.username }}
+                        </h1>
+                        <p class="text-xs text-stone-400">Member since {{ profile_user.date_joined|date:"F Y" }}</p>
+                    </div>
+
+                    <!-- Follow / Unfollow Friend Button -->
+                    {% if user.is_authenticated and not is_self %}
+                        <form action="{% url 'toggle_friend' profile_user.username %}" method="POST">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    class="px-5 py-2 rounded-full text-xs font-bold transition shadow-sm {% if is_following %}bg-stone-200 hover:bg-rose-100 text-stone-800 hover:text-rose-800 border border-stone-300{% else %}bg-bookbrown-800 hover:bg-bookbrown-700 text-amber-400 border border-amber-500/40{% endif %}">
+                                {% if is_following %}✓ Friends / Following (Click to Remove){% else %}+ Add Friend / Follow{% endif %}
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+
+                {% if profile_user.profile.bio %}
+                    <p class="text-sm text-stone-700 max-w-2xl leading-relaxed">
+                        {{ profile_user.profile.bio }}
+                    </p>
+                {% endif %}
+
+                {% if profile_user.profile.favorite_genres %}
+                    <div class="flex flex-wrap gap-1.5 justify-center sm:justify-start pt-1 text-[11px]">
+                        <span class="text-stone-400 font-medium">Favorite Genres:</span>
+                        {% for g in profile_user.profile.genre_list %}
+                            <span class="bg-parchment-200 text-stone-800 px-2.5 py-0.5 rounded-full font-semibold">
+                                {{ g }}
+                            </span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <!-- Reader Stats Counter -->
+                <div class="flex flex-wrap items-center justify-center sm:justify-start gap-6 pt-3 border-t border-parchment-200 text-center">
+                    <div>
+                        <span class="block text-xl font-bold font-serif text-stone-900">{{ books_read_count }}</span>
+                        <span class="text-[11px] text-stone-500 uppercase tracking-wider">Books Logged</span>
+                    </div>
+                    <div class="h-6 w-px bg-stone-200"></div>
+                    <div>
+                        <span class="block text-xl font-bold font-serif text-amber-600">★ {{ avg_rating|default:"0.0" }}</span>
+                        <span class="text-[11px] text-stone-500 uppercase tracking-wider">Avg Rating</span>
+                    </div>
+                    <div class="h-6 w-px bg-stone-200"></div>
+                    <div>
+                        <span class="block text-xl font-bold font-serif text-stone-900">{{ shelves.count }}</span>
+                        <span class="text-[11px] text-stone-500 uppercase tracking-wider">Shelves</span>
+                    </div>
+                    <div class="h-6 w-px bg-stone-200"></div>
+                    <div>
+                        <span class="block text-xl font-bold font-serif text-stone-900">{{ followers_count }}</span>
+                        <span class="text-[11px] text-stone-500 uppercase tracking-wider">Followers</span>
+                    </div>
+                    <div class="h-6 w-px bg-stone-200"></div>
+                    <div>
+                        <span class="block text-xl font-bold font-serif text-stone-900">{{ following_count }}</span>
+                        <span class="text-[11px] text-stone-500 uppercase tracking-wider">Following</span>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Tabbed Sections: Reviews & Shelves & AI Recommendations -->
+    <div class="space-y-6" x-data="{ activeTab: 'reviews' }">
+        
+        <!-- Navigation Sub-headers -->
+        <div class="flex items-center gap-3 border-b border-parchment-200 pb-3">
+            <a href="#reviews-section" class="text-sm font-bold text-stone-900 hover:text-amber-800 border-b-2 border-amber-600 pb-1">
+                Recent Reviews & Ratings
+            </a>
+            <span class="text-stone-300">•</span>
+            <a href="{% url 'user_readlists' profile_user.username %}" class="text-sm font-semibold text-stone-600 hover:text-amber-800">
+                Reading Shelves ({{ shelves.count }})
+            </a>
+            <span class="text-stone-300">•</span>
+            <a href="#ai-recs-section" class="text-sm font-semibold text-amber-700 hover:text-amber-900 flex items-center gap-1">
+                <span>✨ AI Curator's Recommendations</span>
+            </a>
+        </div>
+
+        <!-- Section 1: Reviews Grid / List -->
+        <div id="reviews-section" class="space-y-4">
+            <h3 class="text-lg font-serif font-bold text-stone-900">Recent Ratings & Reviews</h3>
+
+            {% if reviews %}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {% for rev in reviews %}
+                        <div class="bg-white rounded-xl p-4 shadow-sm border border-parchment-200 flex gap-4 spoiler-container">
+                            <a href="{% url 'book_detail' rev.book.id %}" class="w-16 h-24 flex-shrink-0 rounded overflow-hidden book-cover bg-stone-100">
+                                <img src="{{ rev.book.get_cover_image }}" alt="{{ rev.book.title }}" class="w-full h-full object-cover">
+                            </a>
+
+                            <div class="flex-1 min-w-0 space-y-1.5">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs bg-amber-50 text-amber-800 font-bold px-2 py-0.5 rounded border border-amber-200">
+                                        ★ {{ rev.rating }}/5.0
+                                    </span>
+                                    <span class="text-[10px] text-stone-400">{{ rev.created_at|date:"M j, Y" }}</span>
+                                </div>
+
+                                <a href="{% url 'book_detail' rev.book.id %}" class="font-bold text-sm text-stone-900 hover:text-amber-700 block truncate">
+                                    {{ rev.book.title }}
+                                </a>
+                                <p class="text-xs text-stone-500">{{ rev.book.author }}</p>
+
+                                {% if rev.review_text %}
+                                    {% if rev.contains_spoilers %}
+                                        <div class="mt-2 bg-amber-50/70 border border-amber-200 rounded p-2 text-xs">
+                                            <div class="flex items-center justify-between mb-1 text-[11px] text-amber-900 font-semibold">
+                                                <span>⚠️ Contains spoilers</span>
+                                                <button type="button" class="spoiler-toggle-btn underline">Reveal</button>
+                                            </div>
+                                            <p class="spoiler-content spoiler-hidden text-stone-700 italic line-clamp-3">
+                                                "{{ rev.review_text }}"
+                                            </p>
+                                        </div>
+                                    {% else %}
+                                        <p class="text-xs text-stone-600 italic line-clamp-3 mt-1">
+                                            "{{ rev.review_text }}"
+                                        </p>
+                                    {% endif %}
+                                {% endif %}
+
+                                <div class="pt-1 text-[11px] text-stone-400">
+                                    <a href="{% url 'book_detail' rev.book.id %}#review-{{ rev.id }}" class="text-amber-700 hover:underline">
+                                        {{ rev.comments.count }} comments &rarr;
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="bg-white rounded-xl p-8 text-center text-stone-500 text-sm border border-parchment-200">
+                    No books logged or rated yet.
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Section 2: AI Recommendations (Gemini Feature) -->
+        <div id="ai-recs-section" class="bg-gradient-to-br from-amber-50/60 via-parchment-50 to-white rounded-2xl p-6 sm:p-8 shadow-sm border border-amber-200 space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-200/60 pb-4">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xl">✨</span>
+                        <h2 class="text-xl font-serif font-bold text-stone-900">AI Curator's Picks for {{ profile_user.username }}</h2>
+                    </div>
+                    <p class="text-xs text-stone-600 mt-1">
+                        Tailored literary suggestions analyzing highest ratings, favorite themes, and shelves.
+                    </p>
+                </div>
+
+                <!-- API Key Status / Instruction Badge -->
+                {% if is_gemini_configured %}
+                    <span class="inline-flex items-center gap-1 text-[11px] bg-emerald-100 text-emerald-800 border border-emerald-300 font-semibold px-2.5 py-1 rounded-full">
+                        ● Gemini Live Active
+                    </span>
+                {% else %}
+                    <div class="text-[11px] bg-amber-100 text-amber-900 border border-amber-300 px-3 py-1.5 rounded-lg flex items-center gap-2">
+                        <span>💡 Free Gemini Key: Add <code class="bg-amber-200 px-1 rounded">GEMINI_API_KEY</code> to <code class="bg-amber-200 px-1 rounded">.env</code></span>
+                        <a href="https://aistudio.google.com/" target="_blank" class="font-bold underline text-amber-950">Get Key &rarr;</a>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Recommendation Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {% for rec in ai_recs %}
+                    <div class="bg-white rounded-xl p-4 shadow-sm border border-parchment-200 flex flex-col justify-between hover:shadow-md transition space-y-3">
+                        <div class="flex gap-3 items-start">
+                            {% if rec.cover_url %}
+                                <div class="w-16 h-24 flex-shrink-0 rounded overflow-hidden book-cover bg-stone-100">
+                                    <img src="{{ rec.cover_url }}" alt="{{ rec.title }}" class="w-full h-full object-cover">
+                                </div>
+                            {% else %}
+                                <div class="w-16 h-24 flex-shrink-0 rounded bg-stone-200 flex items-center justify-center text-xl text-stone-500">
+                                    📖
+                                </div>
+                            {% endif %}
+
+                            <div class="min-w-0 flex-1">
+                                <span class="inline-block text-[10px] bg-amber-100 text-amber-800 font-semibold px-2 py-0.5 rounded-full mb-1">
+                                    {{ rec.match_vibe|default:"Recommended" }}
+                                </span>
+                                <h4 class="font-bold text-sm text-stone-900 line-clamp-1">{{ rec.title }}</h4>
+                                <p class="text-xs text-stone-500 line-clamp-1">{{ rec.author }}</p>
+                                <p class="text-[11px] text-stone-400 mt-0.5">{{ rec.genre }}</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-parchment-50 p-2.5 rounded-lg border border-parchment-200 text-xs text-stone-700 leading-snug">
+                            <span class="font-semibold text-amber-900">Why you'll love it:</span> {{ rec.reason }}
+                        </div>
+
+                        <div class="pt-1">
+                            <a href="{% url 'book_search' %}?q={{ rec.title }}"
+                               class="block text-center text-xs bg-bookbrown-800 hover:bg-bookbrown-700 text-amber-400 font-semibold py-1.5 rounded transition">
+                                Search & Add to Shelf &rarr;
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Community & Fellow Readers — Bookboxd{% endblock %}
+
+{% block content %}
+<div class="space-y-8 max-w-6xl mx-auto">
+
+    <!-- Header -->
+    <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-parchment-200">
+        <h1 class="text-2xl sm:text-3xl font-serif font-bold text-stone-900">
+            Reader Community
+        </h1>
+        <p class="text-sm text-stone-500 mt-1">
+            Discover book reviewers, follow friends to populate your home activity stream, and explore their custom readlists.
+        </p>
+    </div>
+
+    <!-- Community Members Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {% for u in community_users %}
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-parchment-200 flex flex-col items-center text-center justify-between hover:shadow-md transition space-y-4">
+                
+                <div class="flex flex-col items-center space-y-2">
+                    <a href="{% url 'user_profile' u.username %}">
+                        <img src="{{ u.profile.display_avatar }}" alt="{{ u.username }}"
+                             class="w-16 h-16 rounded-full object-cover border-2 border-stone-200 bg-stone-100 shadow-sm">
+                    </a>
+
+                    <div>
+                        <a href="{% url 'user_profile' u.username %}" class="font-serif font-bold text-base text-stone-900 hover:text-amber-700 block">
+                            {{ u.username }}
+                        </a>
+                        <span class="text-[11px] text-stone-400">Joined {{ u.date_joined|date:"M Y" }}</span>
+                    </div>
+
+                    {% if u.profile.bio %}
+                        <p class="text-xs text-stone-600 line-clamp-2 leading-relaxed">
+                            {{ u.profile.bio }}
+                        </p>
+                    {% endif %}
+                </div>
+
+                <div class="w-full pt-3 border-t border-stone-100 space-y-3">
+                    <div class="flex justify-around text-xs text-stone-500">
+                        <span><strong>{{ u.review_count }}</strong> reviews</span>
+                        <span>•</span>
+                        <span><strong>{{ u.readlists.count }}</strong> shelves</span>
+                    </div>
+
+                    {% if user.is_authenticated and user != u %}
+                        <form action="{% url 'toggle_friend' u.username %}" method="POST">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    class="w-full py-1.5 rounded-lg text-xs font-bold transition {% if u.id in following_set %}bg-stone-100 text-stone-700 border border-stone-300 hover:bg-rose-50 hover:text-rose-700{% else %}bg-bookbrown-800 hover:bg-bookbrown-700 text-amber-400{% endif %}">
+                                {% if u.id in following_set %}Following{% else %}+ Follow / Friend{% endif %}
+                            </button>
+                        </form>
+                    {% else %}
+                        <a href="{% url 'user_profile' u.username %}" class="block text-center text-xs bg-parchment-100 hover:bg-parchment-200 text-stone-800 font-semibold py-1.5 rounded-lg transition">
+                            View Profile &rarr;
+                        </a>
+                    {% endif %}
+                </div>
+
+            </div>
+        {% empty %}
+            <div class="col-span-full bg-white p-12 text-center rounded-2xl border border-parchment-200 text-stone-500">
+                No community members found yet.
+            </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

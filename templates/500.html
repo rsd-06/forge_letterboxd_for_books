@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}500 — Server Plot Twist | Bookboxd{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto py-12 px-4 text-center space-y-6">
+    <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-rose-100 text-rose-800 text-4xl shadow-inner border border-rose-200">
+        ⚙️
+    </div>
+
+    <div class="space-y-2">
+        <span class="text-xs uppercase tracking-widest bg-rose-100 text-rose-800 font-bold px-3 py-1 rounded-full border border-rose-200">
+            Error 500 — Internal Server Error
+        </span>
+        <h1 class="text-3xl sm:text-5xl font-serif font-bold text-stone-900">
+            An Unexpected Plot Twist
+        </h1>
+        <p class="text-sm sm:text-base text-stone-600 max-w-md mx-auto leading-relaxed">
+            Something unexpectedly misbehaved in our engine room. Our request logging system has captured the trace for our team to resolve.
+        </p>
+    </div>
+
+    <!-- Action Buttons with "Ask the Assistant" -->
+    <div class="flex flex-wrap items-center justify-center gap-3 pt-4">
+        <a href="{% url 'home' %}" class="bg-bookbrown-800 hover:bg-bookbrown-700 text-amber-400 font-bold px-6 py-2.5 rounded-xl text-xs shadow-md transition">
+            &larr; Return to Home
+        </a>
+        <a href="{% url 'health_check' %}" class="bg-white hover:bg-stone-100 text-stone-800 border border-stone-300 font-semibold px-5 py-2.5 rounded-xl text-xs transition">
+            System Health Check
+        </a>
+        <button id="ask-assistant-500-btn" type="button"
+                class="bg-amber-500 hover:bg-amber-600 text-stone-950 font-bold px-5 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-md transition transform hover:scale-105">
+            <span>✨ Ask the Assistant</span>
+        </button>
+    </div>
+
+    <!-- Automated Support Ticket Direct Link -->
+    <div class="pt-6 border-t border-parchment-200 text-xs text-stone-500">
+        You can also <a href="{% url 'support_tickets' %}" class="font-bold text-amber-800 hover:underline">file a support ticket directly</a> or view our <a href="{% url 'faq' %}" class="font-bold text-amber-800 hover:underline">FAQ section</a>.
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const askBtn = document.getElementById('ask-assistant-500-btn');
+        const chatWidget = document.getElementById('ai-chat-widget');
+        const chatInput = document.getElementById('ai-chat-input');
+        const chatSend = document.getElementById('ai-chat-send');
+
+        if (askBtn && chatWidget && chatInput) {
+            askBtn.addEventListener('click', () => {
+                chatWidget.classList.remove('hidden');
+                chatInput.value = "I encountered an internal 500 error on Bookboxd. Can you explain what causes this and help me file a support ticket?";
+                if (chatSend) {
+                    setTimeout(() => chatSend.click(), 300);
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,232 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Bookboxd — Letterboxd for Books{% endblock %}</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bookbrown: {
+                            800: '#382110',
+                            900: '#26160B',
+                            700: '#52341D',
+                        },
+                        parchment: {
+                            50: '#FAF9F6',
+                            100: '#F4F1EA',
+                            200: '#EBE6DD',
+                            300: '#DDD6C8',
+                        },
+                        ambergr: {
+                            500: '#D48B30',
+                            600: '#B87222',
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['Merriweather', 'Georgia', 'serif'],
+                        sans: ['Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="bg-parchment-50 text-stone-800 min-h-screen flex flex-col font-sans">
+
+    <!-- Top Navigation Header: Goodreads / Letterboxd inspired -->
+    <header class="bg-bookbrown-800 text-stone-100 shadow-md sticky top-0 z-40 border-b border-bookbrown-900">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16 gap-4">
+                
+                <!-- Logo & Brand -->
+                <div class="flex items-center gap-6">
+                    <a href="{% url 'home' %}" class="flex items-center gap-2 group">
+                        <span class="text-2xl font-serif font-bold text-amber-400 group-hover:text-amber-300 transition tracking-tight">
+                            Bookboxd
+                        </span>
+                        <span class="hidden sm:inline-block text-[10px] bg-amber-600/30 text-amber-200 border border-amber-500/40 rounded px-1.5 py-0.5 font-medium uppercase tracking-wider">
+                            Beta
+                        </span>
+                    </a>
+
+                    <!-- Nav Links -->
+                    <nav class="hidden lg:flex items-center gap-5 text-sm font-medium text-stone-300">
+                        <a href="{% url 'home' %}" class="hover:text-white transition">Home</a>
+                        <a href="{% url 'book_search' %}" class="hover:text-white transition">Discover</a>
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'my_readlists' %}" class="hover:text-white transition">My Shelves</a>
+                        {% endif %}
+                        <a href="{% url 'community' %}" class="hover:text-white transition">Community</a>
+                        <a href="{% url 'faq' %}" class="hover:text-white transition">FAQ</a>
+                        <a href="{% url 'health_check' %}" class="hover:text-white transition">Health</a>
+                        <a href="{% url 'ai_assistant' %}" class="flex items-center gap-1.5 text-amber-300 hover:text-amber-200 transition font-semibold">
+                            <span>✨ AI Assistant</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <!-- Global Search Form -->
+                <div class="flex-1 max-w-md mx-2">
+                    <form action="{% url 'book_search' %}" method="GET" class="relative">
+                        <input type="text" name="q" placeholder="Search books, authors, or genres..."
+                               value="{{ request.GET.q|default:'' }}"
+                               class="w-full bg-stone-900/60 text-stone-100 placeholder-stone-400 text-sm rounded-full pl-9 pr-4 py-1.5 border border-stone-700/60 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-stone-900 transition">
+                        <svg class="w-4 h-4 text-stone-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </form>
+                </div>
+
+                <!-- User Profile / Auth Actions -->
+                <div class="flex items-center gap-3">
+                    {% if user.is_authenticated %}
+                        <div class="flex items-center gap-3">
+                            <a href="{% url 'user_profile' user.username %}" class="flex items-center gap-2 hover:opacity-90 transition">
+                                <img src="{{ user.profile.display_avatar }}" alt="{{ user.username }}" class="w-8 h-8 rounded-full border border-amber-500/50 object-cover bg-stone-700">
+                                <span class="hidden lg:inline text-sm font-medium text-stone-200">{{ user.username }}</span>
+                            </a>
+                            <a href="{% url 'logout' %}" class="text-xs text-stone-400 hover:text-stone-200 transition px-2 py-1">
+                                Log Out
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="flex items-center gap-2">
+                            <a href="{% url 'login' %}" class="text-xs sm:text-sm font-medium text-stone-300 hover:text-white px-3 py-1.5 transition">
+                                Sign In
+                            </a>
+                            <a href="{% url 'register' %}" class="text-xs sm:text-sm font-medium bg-ambergr-500 hover:bg-ambergr-600 text-stone-900 rounded-md px-3.5 py-1.5 font-semibold shadow-sm transition">
+                                Join
+                            </a>
+                        </div>
+                    {% endif %}
+                    <!-- Mobile Menu Hamburger Button -->
+                    <button id="mobile-menu-toggle" type="button" class="lg:hidden text-stone-300 hover:text-white p-1.5 focus:outline-none" aria-label="Toggle navigation">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Mobile Navigation Drawer -->
+        <div id="mobile-nav-drawer" class="hidden lg:hidden bg-bookbrown-900 border-t border-bookbrown-800 px-4 pt-3 pb-4 space-y-2 text-sm font-medium">
+            <a href="{% url 'home' %}" class="block py-1.5 text-stone-200 hover:text-amber-400">Home</a>
+            <a href="{% url 'book_search' %}" class="block py-1.5 text-stone-200 hover:text-amber-400">Discover Books</a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'my_readlists' %}" class="block py-1.5 text-stone-200 hover:text-amber-400">My Shelves</a>
+                <a href="{% url 'user_profile' user.username %}" class="block py-1.5 text-stone-200 hover:text-amber-400">Profile ({{ user.username }})</a>
+            {% endif %}
+            <a href="{% url 'community' %}" class="block py-1.5 text-stone-200 hover:text-amber-400">Community</a>
+            <a href="{% url 'faq' %}" class="block py-1.5 text-stone-200 hover:text-amber-400">FAQs</a>
+            <a href="{% url 'support_tickets' %}" class="block py-1.5 text-stone-200 hover:text-amber-400">Support Tickets</a>
+            <a href="{% url 'error_explorer' %}" class="block py-1.5 text-stone-200 hover:text-amber-400">Error Codes</a>
+            <a href="{% url 'health_check' %}" class="block py-1.5 text-stone-200 hover:text-amber-400">System Health</a>
+            <a href="{% url 'ai_assistant' %}" class="block py-1.5 text-amber-300 font-bold hover:text-amber-200">✨ AI Assistant</a>
+        </div>
+    </header>
+
+    <!-- Flash Messages -->
+    {% if messages %}
+        <div class="max-w-5xl mx-auto w-full px-4 pt-4">
+            {% for message in messages %}
+                <div class="mb-3 p-3.5 rounded-lg text-sm flex items-center justify-between shadow-sm {% if message.tags == 'error' %}bg-rose-100 text-rose-800 border border-rose-300{% elif message.tags == 'success' %}bg-emerald-100 text-emerald-800 border border-emerald-300{% elif message.tags == 'warning' %}bg-amber-100 text-amber-800 border border-amber-300{% else %}bg-blue-100 text-blue-800 border border-blue-300{% endif %}">
+                    <span>{{ message }}</span>
+                    <button onclick="this.parentElement.remove()" class="text-current opacity-70 hover:opacity-100 ml-4">&times;</button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Main Content Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-bookbrown-900 text-stone-400 text-xs py-8 border-t border-bookbrown-800 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-2">
+                <span class="font-serif font-bold text-amber-400 text-base">Bookboxd</span>
+                <span>— Rate, log, track shelves, and discover books with friends & Gemini AI.</span>
+            </div>
+            <div class="flex flex-wrap items-center gap-4 text-stone-400">
+                <a href="{% url 'book_search' %}" class="hover:text-stone-200">Discover</a>
+                <a href="{% url 'community' %}" class="hover:text-stone-200">Community</a>
+                <a href="{% url 'faq' %}" class="hover:text-stone-200">FAQ</a>
+                <a href="{% url 'support_tickets' %}" class="hover:text-stone-200">Support Tickets</a>
+                <a href="{% url 'error_explorer' %}" class="hover:text-stone-200">Error Codes</a>
+                <a href="{% url 'health_check' %}" class="hover:text-stone-200">Health Check</a>
+                <a href="{% url 'ai_assistant' %}" class="hover:text-stone-200">Gemini Assistant</a>
+                <a href="https://github.com/rsd-06/forge_letterboxd_for_books" target="_blank" class="hover:text-stone-200">GitHub</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Floating Gemini AI Chat Widget Button & Dialog -->
+    <div class="fixed bottom-6 right-6 z-50">
+        <!-- Chat Open/Toggle Button -->
+        <button id="ai-chat-toggle"
+                class="bg-bookbrown-800 hover:bg-bookbrown-700 text-amber-400 border border-amber-500/30 rounded-full p-3.5 shadow-xl flex items-center gap-2 group transition transform hover:scale-105"
+                title="Chat with Bibliophile AI">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+            </svg>
+            <span class="hidden sm:inline text-xs font-semibold text-stone-200 group-hover:text-white pr-1">Ask AI</span>
+        </button>
+
+        <!-- Floating Chat Modal Box -->
+        <div id="ai-chat-widget"
+             class="hidden fixed bottom-20 right-4 sm:right-6 w-[92vw] sm:w-96 h-[500px] max-h-[80vh] bg-white rounded-2xl shadow-2xl border border-stone-300 flex flex-col overflow-hidden z-50">
+            <!-- Header -->
+            <div class="bg-bookbrown-800 text-amber-100 px-4 py-3 flex items-center justify-between border-b border-bookbrown-900">
+                <div class="flex items-center gap-2">
+                    <span class="text-lg">📚</span>
+                    <div>
+                        <h4 class="font-serif font-bold text-sm text-amber-400 leading-tight">The Bibliophile</h4>
+                        <p class="text-[11px] text-stone-400">Bookboxd AI Companion</p>
+                    </div>
+                </div>
+                <button id="ai-chat-close" class="text-stone-400 hover:text-white text-lg px-1">&times;</button>
+            </div>
+
+            <!-- Chat Message Stream -->
+            <div id="ai-chat-messages" class="flex-1 p-4 overflow-y-auto chat-scroll bg-parchment-50 space-y-3">
+                <div class="flex justify-start mb-2">
+                    <div class="bg-stone-100 text-stone-800 rounded-2xl rounded-tl-none px-4 py-2.5 max-w-[85%] text-sm shadow-sm border border-stone-200">
+                        Hello! I am your Bookboxd literary assistant. Ask me for book recommendations, plot summaries, reading challenges, or how to organize your shelves!
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Input Footer -->
+            <div class="p-3 bg-white border-t border-stone-200 flex items-center gap-2">
+                <input id="ai-chat-input" type="text" placeholder="Ask about books, ratings, shelves..."
+                       class="flex-1 text-sm bg-stone-50 border border-stone-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white transition">
+                <button id="ai-chat-send"
+                        class="bg-bookbrown-800 hover:bg-bookbrown-700 text-amber-400 rounded-full p-2.5 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main JavaScript -->
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

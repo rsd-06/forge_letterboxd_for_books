@@ -1,0 +1,292 @@
+{% extends "base.html" %}
+
+{% block title %}Bookboxd — The Social Network for Book Lovers{% endblock %}
+
+{% block content %}
+<div class="space-y-10">
+
+    <!-- Hero / Welcome Banner -->
+    <div class="bg-gradient-to-r from-bookbrown-900 via-bookbrown-800 to-stone-900 text-stone-100 rounded-2xl p-6 sm:p-10 shadow-lg border border-amber-900/40 relative overflow-hidden">
+        <div class="max-w-2xl relative z-10 space-y-4">
+            <span class="inline-block text-xs uppercase tracking-widest bg-amber-500/20 text-amber-300 px-2.5 py-1 rounded font-semibold border border-amber-500/30">
+                Letterboxd for Book Lovers
+            </span>
+            <h1 class="text-3xl sm:text-5xl font-serif font-bold text-amber-50 tracking-tight leading-tight">
+                Track what you read. Share what you love.
+            </h1>
+            <p class="text-stone-300 text-sm sm:text-base leading-relaxed">
+                Log books on a 5-star scale, write spoiler-protected reviews, create custom readlists, follow friends' reading activity, and get smart recommendations powered by Gemini AI.
+            </p>
+
+            <div class="pt-2 flex flex-wrap gap-3">
+                {% if not user.is_authenticated %}
+                    <a href="{% url 'register' %}" class="bg-amber-500 hover:bg-amber-600 text-stone-950 px-6 py-2.5 rounded-lg font-semibold text-sm shadow-md transition transform hover:-translate-y-0.5">
+                        Get Started Free
+                    </a>
+                {% endif %}
+                <a href="{% url 'book_search' %}" class="bg-stone-800/80 hover:bg-stone-700 text-stone-200 border border-stone-600/50 px-5 py-2.5 rounded-lg font-medium text-sm transition">
+                    Browse Books
+                </a>
+                <a href="{% url 'ai_assistant' %}" class="bg-amber-900/50 hover:bg-amber-900/80 text-amber-300 border border-amber-500/40 px-5 py-2.5 rounded-lg font-medium text-sm flex items-center gap-2 transition">
+                    <span>Ask Gemini AI</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Ambient decorative book spine graphic in background -->
+        <div class="absolute right-0 bottom-0 opacity-10 pointer-events-none transform translate-x-12 translate-y-8">
+            <svg class="w-96 h-96 text-amber-400" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Featured / Popular Books Poster Strip (Letterboxd Style) -->
+    <section class="space-y-4">
+        <div class="flex items-center justify-between border-b border-parchment-200 pb-2">
+            <div>
+                <h2 class="text-xl font-serif font-bold text-stone-900">Popular & Celebrated Titles</h2>
+                <p class="text-xs text-stone-500">Frequently logged and highly rated by readers</p>
+            </div>
+            <a href="{% url 'book_search' %}" class="text-xs font-semibold text-amber-700 hover:text-amber-800 hover:underline">
+                Explore more &rarr;
+            </a>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-4">
+            {% for book in popular_books %}
+                <div class="group relative flex flex-col">
+                    <a href="{% url 'book_detail' book.id %}" class="block relative overflow-hidden rounded-md bg-stone-200 aspect-[2/3] book-cover">
+                        <img src="{{ book.get_cover_image }}" alt="{{ book.title }}"
+                             class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition duration-200 flex flex-col justify-end p-2 text-white">
+                            <span class="text-xs font-semibold leading-tight line-clamp-2">{{ book.title }}</span>
+                            <span class="text-[10px] text-amber-400 mt-1">★ {{ book.average_rating|default:"0.0" }} ({{ book.ratings_count }})</span>
+                        </div>
+                    </a>
+                    <div class="mt-1.5">
+                        <a href="{% url 'book_detail' book.id %}" class="text-xs font-semibold text-stone-900 hover:text-amber-700 line-clamp-1 block">
+                            {{ book.title }}
+                        </a>
+                        <p class="text-[11px] text-stone-500 line-clamp-1">{{ book.author }}</p>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- Main Two-Column Layout: Activity Stream (Left) vs Recent Community Reviews (Right) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Left: Activity Stream (Letterboxd Activity Feed) -->
+        <div class="lg:col-span-7 space-y-6">
+            <div class="flex items-center justify-between border-b border-parchment-200 pb-2">
+                <h2 class="text-xl font-serif font-bold text-stone-900">
+                    {% if user.is_authenticated %}Friends & Following Activity{% else %}Community Activity Stream{% endif %}
+                </h2>
+                {% if user.is_authenticated %}
+                    <span class="text-xs text-stone-500">Live stream</span>
+                {% else %}
+                    <a href="{% url 'register' %}" class="text-xs font-semibold text-amber-700 hover:underline">Follow friends &rarr;</a>
+                {% endif %}
+            </div>
+
+            {% if activities %}
+                <div class="space-y-4">
+                    {% for act in activities %}
+                        <div class="bg-white rounded-xl p-4 shadow-sm border border-parchment-200 flex gap-4 items-start hover:border-amber-300/80 transition">
+                            <a href="{% url 'user_profile' act.user.username %}" class="flex-shrink-0">
+                                <img src="{{ act.user.profile.display_avatar }}" alt="{{ act.user.username }}" class="w-10 h-10 rounded-full border border-stone-200 object-cover bg-stone-100">
+                            </a>
+
+                            <div class="flex-1 min-w-0">
+                                <div class="text-xs text-stone-500 mb-1 flex items-center gap-1.5 flex-wrap">
+                                    <a href="{% url 'user_profile' act.user.username %}" class="font-bold text-stone-900 hover:text-amber-700">
+                                        {{ act.user.username }}
+                                    </a>
+                                    <span>{{ act.get_activity_type_display }}</span>
+                                    {% if act.target_user %}
+                                        <a href="{% url 'user_profile' act.target_user.username %}" class="font-semibold text-stone-800 hover:text-amber-700">
+                                            @{{ act.target_user.username }}
+                                        </a>
+                                    {% endif %}
+                                    <span class="text-stone-400">• {{ act.created_at|timesince }} ago</span>
+                                </div>
+
+                                {% if act.book %}
+                                    <div class="flex gap-3 items-center mt-2 bg-parchment-50 p-2.5 rounded-lg border border-parchment-200">
+                                        <a href="{% url 'book_detail' act.book.id %}" class="w-12 h-16 flex-shrink-0 rounded overflow-hidden shadow-sm">
+                                            <img src="{{ act.book.get_cover_image }}" alt="{{ act.book.title }}" class="w-full h-full object-cover">
+                                        </a>
+                                        <div class="min-w-0 flex-1">
+                                            <a href="{% url 'book_detail' act.book.id %}" class="font-bold text-sm text-stone-900 hover:text-amber-700 block truncate">
+                                                {{ act.book.title }}
+                                            </a>
+                                            <p class="text-xs text-stone-500">{{ act.book.author }}</p>
+                                            
+                                            {% if act.review %}
+                                                <div class="flex items-center gap-1.5 mt-1">
+                                                    <span class="text-amber-500 text-xs font-semibold">★ {{ act.review.rating }}/5.0</span>
+                                                    {% if act.review.contains_spoilers %}
+                                                        <span class="text-[10px] bg-amber-100 text-amber-800 border border-amber-300 rounded px-1.5 py-0.2">Spoilers</span>
+                                                    {% endif %}
+                                                </div>
+                                            {% endif %}
+                                            {% if act.readlist %}
+                                                <div class="text-xs text-stone-600 mt-1">
+                                                    Added to shelf: <a href="{% url 'readlist_detail' act.user.username act.readlist.slug %}" class="font-medium text-amber-800 hover:underline">{{ act.readlist.name }}</a>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="bg-white rounded-xl p-8 text-center border border-parchment-200 space-y-3">
+                    <p class="text-stone-500 text-sm">No activity yet. Follow other readers in the community or rate your first book!</p>
+                    <a href="{% url 'community' %}" class="inline-block bg-bookbrown-800 text-amber-300 text-xs font-semibold px-4 py-2 rounded-lg hover:bg-bookbrown-700">
+                        Find Readers in Community
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Right: Recent Community Reviews & User Shelf Widget -->
+        <div class="lg:col-span-5 space-y-6">
+            
+            {% if user.is_authenticated %}
+                <!-- Quick User Shelves Card -->
+                <div class="bg-white rounded-xl p-5 shadow-sm border border-parchment-200 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-serif font-bold text-stone-900 text-base">Your Reading Shelves</h3>
+                        <a href="{% url 'my_readlists' %}" class="text-xs text-amber-700 font-semibold hover:underline">View All</a>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                        {% for shelf in user_shelves %}
+                            <a href="{% url 'readlist_detail' user.username shelf.slug %}" class="p-2.5 rounded-lg bg-parchment-100 hover:bg-parchment-200 border border-parchment-200 transition">
+                                <span class="block font-bold text-stone-800 text-sm">{{ shelf.items.count }}</span>
+                                <span class="text-[11px] text-stone-600 truncate block">{{ shelf.name }}</span>
+                            </a>
+                        {% endfor %}
+                    </div>
+                    <div class="pt-1">
+                        <a href="{% url 'create_readlist' %}" class="block text-center text-xs text-amber-800 font-medium py-1.5 bg-amber-50 rounded border border-amber-200 hover:bg-amber-100 transition">
+                            + Create New Custom List
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Community Reviews Stream -->
+            <div class="flex items-center justify-between border-b border-parchment-200 pb-2">
+                <h2 class="text-xl font-serif font-bold text-stone-900">Recent Reviews</h2>
+            </div>
+
+            <div class="space-y-4">
+                {% for rev in recent_reviews %}
+                    <div class="bg-white rounded-xl p-4 shadow-sm border border-parchment-200 space-y-3 spoiler-container">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2.5">
+                                <a href="{% url 'user_profile' rev.user.username %}">
+                                    <img src="{{ rev.user.profile.display_avatar }}" alt="{{ rev.user.username }}" class="w-7 h-7 rounded-full object-cover">
+                                </a>
+                                <div>
+                                    <a href="{% url 'user_profile' rev.user.username %}" class="text-xs font-bold text-stone-900 hover:text-amber-700">
+                                        {{ rev.user.username }}
+                                    </a>
+                                    <div class="text-[11px] text-stone-400">{{ rev.created_at|timesince }} ago</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded text-amber-800 font-bold text-xs">
+                                <span>★ {{ rev.rating }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Book row -->
+                        <div class="flex gap-2.5 items-center">
+                            <a href="{% url 'book_detail' rev.book.id %}" class="w-9 h-12 flex-shrink-0 rounded overflow-hidden">
+                                <img src="{{ rev.book.get_cover_image }}" alt="{{ rev.book.title }}" class="w-full h-full object-cover">
+                            </a>
+                            <div>
+                                <a href="{% url 'book_detail' rev.book.id %}" class="text-xs font-bold text-stone-900 hover:text-amber-700 line-clamp-1">
+                                    {{ rev.book.title }}
+                                </a>
+                                <p class="text-[11px] text-stone-500">{{ rev.book.author }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Review text with spoiler protection -->
+                        {% if rev.review_text %}
+                            {% if rev.contains_spoilers %}
+                                <div class="bg-amber-50/70 border border-amber-200 rounded-lg p-2.5 text-xs">
+                                    <div class="flex items-center justify-between mb-1.5 text-amber-800 font-semibold text-[11px]">
+                                        <span>⚠️ Review contains spoilers</span>
+                                        <button type="button" class="spoiler-toggle-btn text-amber-900 underline text-[11px]">
+                                            Reveal Spoilers
+                                        </button>
+                                    </div>
+                                    <p class="spoiler-content spoiler-hidden text-stone-700 italic">
+                                        "{{ rev.review_text }}"
+                                    </p>
+                                </div>
+                            {% else %}
+                                <p class="text-xs text-stone-700 italic line-clamp-3">
+                                    "{{ rev.review_text }}"
+                                </p>
+                            {% endif %}
+                        {% endif %}
+
+                        <!-- Footer: comments count & link -->
+                        <div class="flex items-center justify-between pt-1 border-t border-stone-100 text-[11px] text-stone-500">
+                            <span>💬 {{ rev.comments.count }} comments</span>
+                            <a href="{% url 'book_detail' rev.book.id %}#review-{{ rev.id }}" class="text-amber-700 hover:underline font-semibold">
+                                View / Add comment &rarr;
+                            </a>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="text-xs text-stone-500 text-center py-4">No reviews yet.</p>
+                {% endfor %}
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Embedded FAQ Section on Landing Page & Home -->
+    <section class="bg-white rounded-2xl p-6 sm:p-10 shadow-sm border border-parchment-200 space-y-6 mt-8">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-parchment-200 pb-4">
+            <div>
+                <span class="text-xs uppercase tracking-widest bg-amber-100 text-amber-800 font-bold px-2.5 py-0.5 rounded-full border border-amber-200">
+                    Frequently Asked Questions
+                </span>
+                <h2 class="text-2xl font-serif font-bold text-stone-900 mt-1">
+                    Everything you need to know about Bookboxd
+                </h2>
+                <p class="text-xs text-stone-500 mt-0.5">Stored in database and available across the entire platform.</p>
+            </div>
+            <a href="{% url 'faq' %}" class="text-xs font-bold text-amber-800 hover:underline">
+                View All FAQs &rarr;
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {% for faq in landing_faqs %}
+                <div class="bg-parchment-50 p-4 rounded-xl border border-parchment-200 space-y-2">
+                    <h4 class="font-serif font-bold text-sm text-stone-900 flex items-center gap-2">
+                        <span class="text-amber-600">Q:</span>
+                        <span>{{ faq.question }}</span>
+                    </h4>
+                    <p class="text-xs text-stone-600 leading-relaxed pl-5">
+                        {{ faq.answer }}
+                    </p>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+</div>
+{% endblock %}

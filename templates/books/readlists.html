@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Reading Shelves & Lists — {{ target_user.username }}{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-parchment-200">
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-serif font-bold text-stone-900">
+                {% if is_owner %}Your Reading Shelves & Lists{% else %}{{ target_user.username }}'s Shelves & Lists{% endif %}
+            </h1>
+            <p class="text-xs sm:text-sm text-stone-500 mt-1">
+                Curate multiple custom reading queues, favorites, and completed books.
+            </p>
+        </div>
+
+        {% if is_owner %}
+            <a href="{% url 'create_readlist' %}"
+               class="inline-flex items-center gap-2 bg-bookbrown-800 hover:bg-bookbrown-700 text-amber-400 font-bold text-xs px-4 py-2.5 rounded-lg shadow transition">
+                <span>+ Create New Custom List</span>
+            </a>
+        {% endif %}
+    </div>
+
+    <!-- Lists Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for rl in readlists %}
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-parchment-200 flex flex-col justify-between hover:shadow-md hover:border-amber-300 transition space-y-4">
+                
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[11px] font-bold uppercase tracking-wider {% if rl.is_default %}text-amber-700 bg-amber-50 border border-amber-200{% else %}text-stone-600 bg-stone-100{% endif %} px-2.5 py-0.5 rounded-full">
+                            {{ rl.get_list_type_display }}
+                        </span>
+                        <span class="text-xs text-stone-400 font-semibold">{{ rl.items.count }} books</span>
+                    </div>
+
+                    <a href="{% url 'readlist_detail' target_user.username rl.slug %}" class="block">
+                        <h3 class="font-serif font-bold text-lg text-stone-900 hover:text-amber-700 transition">
+                            {{ rl.name }}
+                        </h3>
+                    </a>
+
+                    {% if rl.description %}
+                        <p class="text-xs text-stone-600 line-clamp-2 mt-1 leading-relaxed">
+                            {{ rl.description }}
+                        </p>
+                    {% endif %}
+                </div>
+
+                <!-- Book Covers Stack Preview -->
+                <div class="pt-2">
+                    <div class="flex -space-x-3 overflow-hidden py-1">
+                        {% for item in rl.items.all|slice:":5" %}
+                            <img src="{{ item.book.get_cover_image }}" alt="{{ item.book.title }}"
+                                 class="inline-block h-16 w-11 rounded object-cover shadow-sm ring-2 ring-white">
+                        {% empty %}
+                            <div class="h-16 w-full flex items-center justify-center bg-parchment-100 rounded text-stone-400 text-xs italic">
+                                Empty shelf
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="pt-3 border-t border-stone-100 flex items-center justify-between text-xs">
+                    <a href="{% url 'readlist_detail' target_user.username rl.slug %}" class="text-amber-800 font-bold hover:underline">
+                        Open List &rarr;
+                    </a>
+                    <span class="text-[10px] text-stone-400">Updated {{ rl.updated_at|date:"M j, Y" }}</span>
+                </div>
+
+            </div>
+        {% empty %}
+            <div class="col-span-full bg-white p-12 text-center rounded-2xl border border-parchment-200 text-stone-500">
+                No readlists yet. Create one to organize your books!
+            </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

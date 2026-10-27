@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block title %}The Bibliophile — Bookboxd AI Assistant{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+
+    <!-- Header Banner -->
+    <div class="bg-gradient-to-r from-bookbrown-900 via-bookbrown-800 to-stone-900 text-stone-100 p-6 sm:p-8 rounded-2xl shadow-md border border-amber-900/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="space-y-1.5 text-center sm:text-left">
+            <div class="flex items-center justify-center sm:justify-start gap-2">
+                <span class="text-2xl">📚</span>
+                <h1 class="text-2xl sm:text-3xl font-serif font-bold text-amber-400">
+                    The Bibliophile AI
+                </h1>
+                <span class="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded font-semibold uppercase tracking-wider">
+                    Gemini Powered
+                </span>
+            </div>
+            <p class="text-xs sm:text-sm text-stone-300 max-w-xl">
+                Your dedicated literary companion. Ask questions about literature, book ratings, spoiler reviews, FAQs, error codes, or request a support ticket.
+            </p>
+        </div>
+
+        <a href="{% url 'support_tickets' %}"
+           class="bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-600 px-4 py-2 rounded-xl text-xs font-semibold transition self-center sm:self-auto flex items-center gap-1.5">
+            <span>🎫 Support Desk</span>
+        </a>
+    </div>
+
+    <!-- Suggested Quick Prompts -->
+    <div class="flex flex-wrap gap-2 text-xs">
+        <button type="button" onclick="setFullChatPrompt('How do I rate books with half stars and write spoiler-protected reviews?')"
+                class="bg-white hover:bg-parchment-100 text-stone-800 border border-parchment-300 px-3 py-1.5 rounded-full shadow-sm transition">
+            ⭐ How do rating & spoiler reviews work?
+        </button>
+        <button type="button" onclick="setFullChatPrompt('What does HTTP 404 and HTTP 500 mean on Bookboxd?')"
+                class="bg-white hover:bg-parchment-100 text-stone-800 border border-parchment-300 px-3 py-1.5 rounded-full shadow-sm transition">
+            🛠️ Explain Error Codes
+        </button>
+        <button type="button" onclick="setFullChatPrompt('I need book recommendations similar to Dune and Project Hail Mary!')"
+                class="bg-white hover:bg-parchment-100 text-stone-800 border border-parchment-300 px-3 py-1.5 rounded-full shadow-sm transition">
+            📖 Recommend Sci-Fi Masterpieces
+        </button>
+        <button type="button" onclick="setFullChatPrompt('Please create a support ticket: I found a book with missing page numbers.')"
+                class="bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 px-3 py-1.5 rounded-full shadow-sm transition font-semibold">
+            🎫 Create Support Ticket
+        </button>
+    </div>
+
+    <!-- Main Chat Window Card -->
+    <div class="bg-white rounded-2xl shadow-sm border border-parchment-200 flex flex-col h-[600px] overflow-hidden">
+        
+        <!-- Messages Area -->
+        <div id="full-page-chat-messages" class="flex-1 p-6 overflow-y-auto chat-scroll space-y-4 bg-parchment-50">
+            
+            <!-- Welcome message -->
+            <div class="flex justify-start">
+                <div class="bg-white text-stone-800 rounded-2xl rounded-tl-none p-4 max-w-[85%] text-sm shadow-sm border border-stone-200 space-y-2">
+                    <p class="font-serif font-bold text-stone-900">Greetings, reader!</p>
+                    <p class="leading-relaxed">
+                        I am synced with the entire Bookboxd database. You can ask me anything about literature, reading lists, FAQ questions, or explain technical error codes.
+                    </p>
+                    <p class="text-xs text-stone-500">
+                        If there's an issue I cannot resolve, just ask me to <strong>create a support ticket</strong> and I will log it directly into our SQL database.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Feedback & Rating Bar -->
+        <div id="chat-feedback-bar" class="hidden px-6 py-2 bg-amber-50 border-t border-amber-200 flex items-center justify-between text-xs text-amber-900">
+            <span class="font-medium">Did this response help you?</span>
+            <div class="flex items-center gap-2">
+                <button onclick="submitFeedback(5)" class="hover:scale-125 transition">👍 Helpful</button>
+                <span class="text-stone-300">•</span>
+                <button onclick="submitFeedback(2)" class="hover:scale-125 transition">👎 Needs Improvement</button>
+            </div>
+        </div>
+
+        <!-- Input Box -->
+        <div class="p-4 bg-white border-t border-stone-200">
+            <form id="full-page-chat-form" onsubmit="event.preventDefault(); sendFullPageMessage();" class="flex gap-2">
+                <input id="full-chat-input" type="text" placeholder="Ask about books, tropes, error codes, or type 'create a ticket'..."
+                       class="flex-1 bg-parchment-50 border border-stone-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white transition"
+                       autofocus>
+                <button type="submit" class="bg-bookbrown-800 hover:bg-bookbrown-700 text-amber-400 font-bold px-6 py-3 rounded-xl text-sm shadow transition">
+                    Send
+                </button>
+            </form>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let fullPageHistory = [];
+    const fullMessages = document.getElementById('full-page-chat-messages');
+    const fullInput = document.getElementById('full-chat-input');
+    const feedbackBar = document.getElementById('chat-feedback-bar');
+
+    function setFullChatPrompt(text) {
+        if (fullInput) {
+            fullInput.value = text;
+            sendFullPageMessage();
+        }
+    }
+
+    async function sendFullPageMessage() {
+        const text = fullInput.value.trim();
+        if (!text) return;
+
+        appendBubble('user', text);
+        fullInput.value = '';
+        fullPageHistory.push({ sender: 'user', text });
+
+        const typingId = appendTyping();
+        fullMessages.scrollTop = fullMessages.scrollHeight;
+
+        try {
+            const csrfToken = getCookie('csrftoken');
+            const res = await fetch('/ai-assistant/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: JSON.stringify({
+                    message: text,
+                    history: fullPageHistory
+                })
+            });
+
+            removeTyping(typingId);
+
+            if (res.ok) {
+                const data = await res.json();
+                appendBubble('assistant', data.response, data.is_live_ai);
+                fullPageHistory.push({ sender: 'assistant', text: data.response });
+                if (feedbackBar) feedbackBar.classList.remove('hidden');
+            } else {
+                appendBubble('assistant', "I encountered a hiccup connecting to the service. Please try again.");
+            }
+        } catch (e) {
+            removeTyping(typingId);
+            appendBubble('assistant', "Connection interrupted. Please verify your internet connection.");
+        }
+
+        fullMessages.scrollTop = fullMessages.scrollHeight;
+    }
+
+    function appendBubble(role, text, isLiveAi = false) {
+        const div = document.createElement('div');
+        div.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} mb-3`;
+
+        const bubble = document.createElement('div');
+        if (role === 'user') {
+            bubble.className = 'bg-[#382110] text-amber-50 rounded-2xl rounded-tr-none px-5 py-3 max-w-[80%] text-sm shadow-sm';
+            bubble.textContent = text;
+        } else {
+            bubble.className = 'bg-white text-stone-800 rounded-2xl rounded-tl-none p-5 max-w-[85%] text-sm shadow-sm border border-stone-200 leading-relaxed';
+            let formatted = text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/•\s+(.*)/g, '<div class="ml-2 my-1">• $1</div>')
+                .replace(/\n\n/g, '<div class="h-2"></div>')
+                .replace(/\n/g, '<br>');
+            bubble.innerHTML = formatted;
+
+            if (isLiveAi) {
+                const badge = document.createElement('div');
+                badge.className = 'text-[10px] text-amber-700 mt-2 font-semibold flex items-center gap-1';
+                badge.innerHTML = '✨ Powered by Gemini Live';
+                bubble.appendChild(badge);
+            }
+        }
+
+        div.appendChild(bubble);
+        fullMessages.appendChild(div);
+        fullMessages.scrollTop = fullMessages.scrollHeight;
+    }
+
+    function appendTyping() {
+        const id = 'typing-' + Date.now();
+        const div = document.createElement('div');
+        div.id = id;
+        div.className = 'flex justify-start mb-3';
+        div.innerHTML = `
+            <div class="bg-white text-stone-500 rounded-2xl rounded-tl-none px-4 py-2.5 text-xs flex items-center gap-1.5 border border-stone-200 shadow-sm">
+                <span class="animate-bounce">●</span>
+                <span class="animate-bounce" style="animation-delay: 0.15s">●</span>
+                <span class="animate-bounce" style="animation-delay: 0.3s">●</span>
+                <span class="ml-1 text-[11px]">The Bibliophile is composing...</span>
+            </div>
+        `;
+        fullMessages.appendChild(div);
+        return id;
+    }
+
+    function removeTyping(id) {
+        const el = document.getElementById(id);
+        if (el) el.remove();
+    }
+
+    async function submitFeedback(score) {
+        try {
+            const csrfToken = getCookie('csrftoken');
+            await fetch('/api/chat-feedback/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: JSON.stringify({
+                    rating: score,
+                    feedback: score >= 4 ? 'Positive feedback' : 'Requested improvement'
+                })
+            });
+            if (feedbackBar) {
+                feedbackBar.innerHTML = '<span class="text-emerald-800 font-semibold">✓ Feedback saved to MongoDB! Thank you.</span>';
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
+</script>
+{% endblock %}

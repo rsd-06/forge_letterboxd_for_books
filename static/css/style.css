@@ -1,0 +1,65 @@
+/* Custom Goodreads-inspired styles for Bookboxd */
+
+:root {
+    --gr-brown: #382110;
+    --gr-parchment: #F4F1EA;
+    --gr-card: #FFFFFF;
+    --gr-accent: #7A5330;
+    --gr-gold: #E8A838;
+    --gr-border: #E8E5DD;
+}
+
+body {
+    background-color: #F9F8F6;
+    color: #222222;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.serif-font {
+    font-family: "Merriweather", Georgia, "Times New Roman", serif;
+}
+
+/* Book Cover Styling with Letterboxd/Goodreads shadow */
+.book-cover {
+    box-shadow: 0 4px 12px rgba(56, 33, 16, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-radius: 4px;
+}
+
+.book-cover:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 8px 24px rgba(56, 33, 16, 0.25);
+}
+
+/* Star rating interactive hover */
+.star-btn {
+    transition: transform 0.15s ease, color 0.15s ease;
+}
+.star-btn:hover {
+    transform: scale(1.2);
+}
+
+/* Spoiler banner & blur effect */
+.spoiler-hidden {
+    filter: blur(5px);
+    user-select: none;
+    cursor: pointer;
+    transition: filter 0.3s ease;
+}
+
+.spoiler-hidden.revealed {
+    filter: none;
+    user-select: auto;
+}
+
+/* Custom scrollbar for chat */
+.chat-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+.chat-scroll::-webkit-scrollbar-track {
+    background: #F4F1EA;
+}
+.chat-scroll::-webkit-scrollbar-thumb {
+    background: #C4B9AA;
+    border-radius: 4px;
+}

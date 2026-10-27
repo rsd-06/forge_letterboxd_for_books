@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}404 — Chapter Not Found | Bookboxd{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto py-12 px-4 text-center space-y-6">
+    <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-amber-100 text-amber-800 text-4xl shadow-inner border border-amber-200">
+        📚
+    </div>
+
+    <div class="space-y-2">
+        <span class="text-xs uppercase tracking-widest bg-rose-100 text-rose-800 font-bold px-3 py-1 rounded-full border border-rose-200">
+            Error 404 — Page Not Found
+        </span>
+        <h1 class="text-3xl sm:text-5xl font-serif font-bold text-stone-900">
+            A Missing Chapter in the Library
+        </h1>
+        <p class="text-sm sm:text-base text-stone-600 max-w-md mx-auto leading-relaxed">
+            The page or book you are searching for at <code class="bg-stone-100 px-1.5 py-0.5 rounded text-amber-900 font-mono text-xs">{{ path|default:request.path }}</code> seems to have slipped off our shelves.
+        </p>
+    </div>
+
+    <!-- Action Buttons including "Ask the Assistant" -->
+    <div class="flex flex-wrap items-center justify-center gap-3 pt-4">
+        <a href="{% url 'home' %}" class="bg-bookbrown-800 hover:bg-bookbrown-700 text-amber-400 font-bold px-6 py-2.5 rounded-xl text-xs shadow-md transition">
+            &larr; Return to Home
+        </a>
+        <a href="{% url 'book_search' %}" class="bg-white hover:bg-stone-100 text-stone-800 border border-stone-300 font-semibold px-5 py-2.5 rounded-xl text-xs transition">
+            Search Catalog
+        </a>
+        <button id="ask-assistant-404-btn" type="button"
+                class="bg-amber-500 hover:bg-amber-600 text-stone-950 font-bold px-5 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-md transition transform hover:scale-105">
+            <span>✨ Ask the Assistant</span>
+        </button>
+    </div>
+
+    <!-- Helpful Suggestions -->
+    <div class="pt-8 border-t border-parchment-200 text-left bg-white p-6 rounded-2xl border shadow-sm space-y-3">
+        <h3 class="font-serif font-bold text-stone-900 text-sm">Where would you like to go next?</h3>
+        <ul class="text-xs text-stone-600 space-y-2">
+            <li>• <a href="{% url 'faq' %}" class="text-amber-800 font-semibold hover:underline">Frequently Asked Questions (FAQ)</a> — browse answers to common questions</li>
+            <li>• <a href="{% url 'error_explorer' %}" class="text-amber-800 font-semibold hover:underline">Error Code Explorer</a> — learn about HTTP 404, 500, 429, and other codes</li>
+            <li>• <a href="{% url 'support_tickets' %}" class="text-amber-800 font-semibold hover:underline">Support & Tickets</a> — file a ticket if a book or link is broken</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const askBtn = document.getElementById('ask-assistant-404-btn');
+        const chatWidget = document.getElementById('ai-chat-widget');
+        const chatInput = document.getElementById('ai-chat-input');
+        const chatSend = document.getElementById('ai-chat-send');
+
+        if (askBtn && chatWidget && chatInput) {
+            askBtn.addEventListener('click', () => {
+                chatWidget.classList.remove('hidden');
+                chatInput.value = "I reached a 404 Not Found error for path: {{ path|default:request.path }}. Can you explain what this means and help me find the right book?";
+                if (chatSend) {
+                    setTimeout(() => chatSend.click(), 300);
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

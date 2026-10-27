@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}Discover & Search Books — Bookboxd{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+
+    <!-- Search Header -->
+    <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-parchment-200">
+        <h1 class="text-2xl sm:text-3xl font-serif font-bold text-stone-900 mb-2">Search the Literary Universe</h1>
+        <p class="text-sm text-stone-500 mb-6">
+            Search our curated library or pull millions of titles directly from the free Open Library database.
+        </p>
+
+        <form action="{% url 'book_search' %}" method="GET" class="flex flex-col sm:flex-row gap-3">
+            <div class="relative flex-1">
+                <input type="text" name="q" value="{{ query }}" placeholder="Search by title, author, or genre (e.g. Dune, Andy Weir, Fantasy)..."
+                       class="w-full bg-parchment-50 border border-stone-300 rounded-xl px-4 py-3 pl-11 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white transition"
+                       autofocus>
+                <svg class="w-5 h-5 text-stone-400 absolute left-3.5 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+            </div>
+            <button type="submit" class="bg-bookbrown-800 hover:bg-bookbrown-700 text-amber-400 font-semibold px-6 py-3 rounded-xl text-sm shadow-md transition">
+                Search
+            </button>
+        </form>
+    </div>
+
+    {% if query %}
+        <!-- Search Results -->
+        <div class="space-y-8">
+            
+            <!-- Local Database Matches -->
+            {% if local_books %}
+                <section class="space-y-4">
+                    <div class="flex items-center gap-2 border-b border-parchment-200 pb-2">
+                        <span class="text-sm font-serif font-bold text-stone-900">Bookboxd Catalog Matches ({{ local_books|length }})</span>
+                        <span class="text-xs bg-amber-100 text-amber-800 rounded px-2 py-0.5">With local ratings</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
+                        {% for book in local_books %}
+                            <div class="bg-white rounded-xl p-3 border border-parchment-200 shadow-sm flex flex-col justify-between hover:shadow-md transition">
+                                <div>
+                                    <a href="{% url 'book_detail' book.id %}" class="block aspect-[2/3] rounded-md overflow-hidden bg-stone-100 book-cover mb-2.5">
+                                        <img src="{{ book.get_cover_image }}" alt="{{ book.title }}" class="w-full h-full object-cover">
+                                    </a>
+                                    <a href="{% url 'book_detail' book.id %}" class="font-bold text-xs text-stone-900 hover:text-amber-700 block line-clamp-1">
+                                        {{ book.title }}
+                                    </a>
+                                    <p class="text-[11px] text-stone-500 line-clamp-1">{{ book.author }}</p>
+                                </div>
+                                <div class="mt-2 pt-2 border-t border-stone-100 flex items-center justify-between text-xs">
+                                    <span class="text-amber-600 font-bold">★ {{ book.average_rating|default:"0.0" }}</span>
+                                    <a href="{% url 'book_detail' book.id %}" class="text-amber-800 font-semibold hover:underline text-[11px]">
+                                        Rate & Log &rarr;
+                                    </a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </section>
+            {% endif %}
+
+            <!-- Open Library Live Internet Database Results -->
+            <section class="space-y-4">
+                <div class="flex items-center justify-between border-b border-parchment-200 pb-2">
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-serif font-bold text-stone-900">From Open Library Global Database</span>
+                        <span class="text-xs bg-stone-100 text-stone-600 rounded px-2 py-0.5">Free Web API</span>
+                    </div>
+                </div>
+
+                {% if ol_results %}
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
+                        {% for ol in ol_results %}
+                            <div class="bg-white rounded-xl p-3 border border-parchment-200 shadow-sm flex flex-col justify-between hover:shadow-md transition">
+                                <div>
+                                    <a href="{% url 'book_detail_ol' ol.openlibrary_key %}" class="block aspect-[2/3] rounded-md overflow-hidden bg-stone-100 book-cover mb-2.5">
+                                        {% if ol.cover_url %}
+                                            <img src="{{ ol.cover_url }}" alt="{{ ol.title }}" class="w-full h-full object-cover">
+                                        {% else %}
+                                            <div class="w-full h-full flex flex-col items-center justify-center p-3 text-center bg-stone-200 text-stone-600">
+                                                <span class="text-2xl">📖</span>
+                                                <span class="text-[10px] font-bold line-clamp-3 mt-1">{{ ol.title }}</span>
+                                            </div>
+                                        {% endif %}
+                                    </a>
+                                    <a href="{% url 'book_detail_ol' ol.openlibrary_key %}" class="font-bold text-xs text-stone-900 hover:text-amber-700 block line-clamp-1">
+                                        {{ ol.title }}
+                                    </a>
+                                    <p class="text-[11px] text-stone-500 line-clamp-1">{{ ol.author }}</p>
+                                    {% if ol.first_publish_year %}
+                                        <p class="text-[10px] text-stone-400 mt-0.5">{{ ol.first_publish_year }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="mt-2 pt-2 border-t border-stone-100">
+                                    <a href="{% url 'book_detail_ol' ol.openlibrary_key %}" class="block text-center text-xs bg-parchment-100 hover:bg-amber-100 text-stone-800 font-semibold py-1 rounded transition">
+                                        View & Log
+                                    </a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="bg-white rounded-xl p-8 text-center text-stone-500 text-sm border border-parchment-200">
+                        No matches found on Open Library for "{{ query }}". Try searching for another book title or author!
+                    </div>
+                {% endif %}
+            </section>
+
+        </div>
+    {% else %}
+        <!-- Suggestions / Genre Browsing -->
+        <div class="bg-white p-6 rounded-2xl border border-parchment-200 space-y-4">
+            <h3 class="font-serif font-bold text-stone-900 text-base">Popular Search Suggestions</h3>
+            <div class="flex flex-wrap gap-2 text-xs">
+                <a href="{% url 'book_search' %}?q=Dune" class="bg-parchment-100 hover:bg-parchment-200 text-stone-800 border border-parchment-200 px-3 py-1.5 rounded-full font-medium transition">Dune</a>
+                <a href="{% url 'book_search' %}?q=Project+Hail+Mary" class="bg-parchment-100 hover:bg-parchment-200 text-stone-800 border border-parchment-200 px-3 py-1.5 rounded-full font-medium transition">Project Hail Mary</a>
+                <a href="{% url 'book_search' %}?q=The+Hobbit" class="bg-parchment-100 hover:bg-parchment-200 text-stone-800 border border-parchment-200 px-3 py-1.5 rounded-full font-medium transition">The Hobbit</a>
+                <a href="{% url 'book_search' %}?q=1984" class="bg-parchment-100 hover:bg-parchment-200 text-stone-800 border border-parchment-200 px-3 py-1.5 rounded-full font-medium transition">1984</a>
+                <a href="{% url 'book_search' %}?q=Pride+and+Prejudice" class="bg-parchment-100 hover:bg-parchment-200 text-stone-800 border border-parchment-200 px-3 py-1.5 rounded-full font-medium transition">Pride and Prejudice</a>
+                <a href="{% url 'book_search' %}?q=Dark+Academia" class="bg-parchment-100 hover:bg-parchment-200 text-stone-800 border border-parchment-200 px-3 py-1.5 rounded-full font-medium transition">Dark Academia</a>
+                <a href="{% url 'book_search' %}?q=Science+Fiction" class="bg-parchment-100 hover:bg-parchment-200 text-stone-800 border border-parchment-200 px-3 py-1.5 rounded-full font-medium transition">Science Fiction</a>
+                <a href="{% url 'book_search' %}?q=Fantasy" class="bg-parchment-100 hover:bg-parchment-200 text-stone-800 border border-parchment-200 px-3 py-1.5 rounded-full font-medium transition">Fantasy</a>
+            </div>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}{{ readlist.name }} — {{ target_user.username }}'s List — Bookboxd{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+
+    <!-- Header -->
+    <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-parchment-200">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-2 mb-2">
+                    <a href="{% url 'user_readlists' target_user.username %}" class="text-xs text-amber-700 font-bold hover:underline">
+                        &larr; All Lists
+                    </a>
+                    <span class="text-stone-300">•</span>
+                    <span class="text-xs text-stone-500">Curated by {{ target_user.username }}</span>
+                </div>
+                <h1 class="text-2xl sm:text-3xl font-serif font-bold text-stone-900">
+                    {{ readlist.name }}
+                </h1>
+                {% if readlist.description %}
+                    <p class="text-sm text-stone-600 mt-2 max-w-2xl leading-relaxed">
+                        {{ readlist.description }}
+                    </p>
+                {% endif %}
+            </div>
+
+            <div class="text-right">
+                <span class="text-2xl font-serif font-bold text-stone-900 block">{{ items.count }}</span>
+                <span class="text-xs text-stone-400 uppercase tracking-wider">Books in list</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Book Grid (Letterboxd Style) -->
+    {% if items %}
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+            {% for item in items %}
+                <div class="bg-white rounded-xl p-3 shadow-sm border border-parchment-200 flex flex-col justify-between hover:shadow-md transition">
+                    <div>
+                        <a href="{% url 'book_detail' item.book.id %}" class="block aspect-[2/3] rounded overflow-hidden book-cover bg-stone-100 mb-2.5">
+                            <img src="{{ item.book.get_cover_image }}" alt="{{ item.book.title }}" class="w-full h-full object-cover">
+                        </a>
+
+                        <a href="{% url 'book_detail' item.book.id %}" class="font-bold text-xs text-stone-900 hover:text-amber-700 line-clamp-1 block">
+                            {{ item.book.title }}
+                        </a>
+                        <p class="text-[11px] text-stone-500 line-clamp-1">{{ item.book.author }}</p>
+                        <div class="flex items-center gap-1 text-[11px] text-amber-600 font-bold mt-1">
+                            <span>★ {{ item.book.average_rating|default:"0.0" }}</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-3 pt-2 border-t border-stone-100 flex items-center justify-between text-[11px]">
+                        <span class="text-stone-400">{{ item.added_at|date:"M j" }}</span>
+                        {% if is_owner %}
+                            <form action="{% url 'toggle_readlist_item' item.book.id %}" method="POST" onsubmit="return confirm('Remove this book from list?');">
+                                {% csrf_token %}
+                                <input type="hidden" name="readlist_id" value="{{ readlist.id }}">
+                                <button type="submit" class="text-rose-600 hover:text-rose-800 font-semibold">
+                                    Remove
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="bg-white p-12 text-center rounded-2xl border border-parchment-200 space-y-3">
+            <p class="text-stone-500 text-sm">This readlist is currently empty.</p>
+            <a href="{% url 'book_search' %}" class="inline-block bg-bookbrown-800 hover:bg-bookbrown-700 text-amber-400 text-xs font-bold px-4 py-2 rounded-lg">
+                Discover Books to Add &rarr;
+            </a>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}
