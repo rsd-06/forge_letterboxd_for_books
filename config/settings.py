@@ -102,7 +102,7 @@ LOGOUT_REDIRECT_URL = 'home'
 
 # Gemini API configuration
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
-GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-2.5-flash')
+GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-3.5-flash')
 
 # MongoDB configuration
 MONGODB_URI = os.getenv('MONGODB_URI', '')
