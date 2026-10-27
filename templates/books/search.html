@@ -118,14 +118,53 @@
             <div class="flex flex-wrap gap-2 text-xs">
                 <a href="{% url 'book_search' %}?q=Dune" class="bg-parchment-100 hover:bg-parchment-200 text-stone-800 border border-parchment-200 px-3 py-1.5 rounded-full font-medium transition">Dune</a>
                 <a href="{% url 'book_search' %}?q=Project+Hail+Mary" class="bg-parchment-100 hover:bg-parchment-200 text-stone-800 border border-parchment-200 px-3 py-1.5 rounded-full font-medium transition">Project Hail Mary</a>
-                <a href="{% url 'book_search' %}?q=The+Hobbit" class="bg-parchment-100 hover:bg-parchment-200 text-stone-800 border border-parchment-200 px-3 py-1.5 rounded-full font-medium transition">The Hobbit</a>
-                <a href="{% url 'book_search' %}?q=1984" class="bg-parchment-100 hover:bg-parchment-200 text-stone-800 border border-parchment-200 px-3 py-1.5 rounded-full font-medium transition">1984</a>
-                <a href="{% url 'book_search' %}?q=Pride+and+Prejudice" class="bg-parchment-100 hover:bg-parchment-200 text-stone-800 border border-parchment-200 px-3 py-1.5 rounded-full font-medium transition">Pride and Prejudice</a>
-                <a href="{% url 'book_search' %}?q=Dark+Academia" class="bg-parchment-100 hover:bg-parchment-200 text-stone-800 border border-parchment-200 px-3 py-1.5 rounded-full font-medium transition">Dark Academia</a>
+                <a href="{% url 'book_search' %}?q=The+Name+of+the+Wind" class="bg-parchment-100 hover:bg-parchment-200 text-stone-800 border border-parchment-200 px-3 py-1.5 rounded-full font-medium transition">The Name of the Wind</a>
+                <a href="{% url 'book_search' %}?q=The+Great+Gatsby" class="bg-parchment-100 hover:bg-parchment-200 text-stone-800 border border-parchment-200 px-3 py-1.5 rounded-full font-medium transition">The Great Gatsby</a>
+                <a href="{% url 'book_search' %}?q=Babel" class="bg-parchment-100 hover:bg-parchment-200 text-stone-800 border border-parchment-200 px-3 py-1.5 rounded-full font-medium transition">Babel</a>
+                <a href="{% url 'book_search' %}?q=Atomic+Habits" class="bg-parchment-100 hover:bg-parchment-200 text-stone-800 border border-parchment-200 px-3 py-1.5 rounded-full font-medium transition">Atomic Habits</a>
+                <a href="{% url 'book_search' %}?q=Sapiens" class="bg-parchment-100 hover:bg-parchment-200 text-stone-800 border border-parchment-200 px-3 py-1.5 rounded-full font-medium transition">Sapiens</a>
+                <a href="{% url 'book_search' %}?q=The+Silent+Patient" class="bg-parchment-100 hover:bg-parchment-200 text-stone-800 border border-parchment-200 px-3 py-1.5 rounded-full font-medium transition">The Silent Patient</a>
                 <a href="{% url 'book_search' %}?q=Science+Fiction" class="bg-parchment-100 hover:bg-parchment-200 text-stone-800 border border-parchment-200 px-3 py-1.5 rounded-full font-medium transition">Science Fiction</a>
                 <a href="{% url 'book_search' %}?q=Fantasy" class="bg-parchment-100 hover:bg-parchment-200 text-stone-800 border border-parchment-200 px-3 py-1.5 rounded-full font-medium transition">Fantasy</a>
             </div>
         </div>
+
+        <!-- Full Curated Library Grid -->
+        {% if featured_catalog %}
+            <section class="space-y-4">
+                <div class="flex items-center justify-between border-b border-parchment-200 pb-2">
+                    <div>
+                        <h2 class="text-xl font-serif font-bold text-stone-900">Curated Library Catalog ({{ featured_catalog|length }} Books)</h2>
+                        <p class="text-xs text-stone-500">Explore classic literature, award-winning sci-fi, dark academia, and bestsellers</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
+                    {% for book in featured_catalog %}
+                        <div class="bg-white rounded-xl p-3 border border-parchment-200 shadow-sm flex flex-col justify-between hover:shadow-md transition">
+                            <div>
+                                <a href="{% url 'book_detail' book.id %}" class="block aspect-[2/3] rounded-md overflow-hidden bg-stone-100 book-cover mb-2.5">
+                                    <img src="{{ book.get_cover_image }}" alt="{{ book.title }}" class="w-full h-full object-cover">
+                                </a>
+                                <a href="{% url 'book_detail' book.id %}" class="font-bold text-xs text-stone-900 hover:text-amber-700 block line-clamp-1">
+                                    {{ book.title }}
+                                </a>
+                                <p class="text-[11px] text-stone-500 line-clamp-1">{{ book.author }}</p>
+                                <span class="inline-block mt-1 text-[10px] bg-parchment-100 text-stone-600 px-1.5 py-0.5 rounded">
+                                    {{ book.genre }}
+                                </span>
+                            </div>
+                            <div class="mt-2 pt-2 border-t border-stone-100 flex items-center justify-between text-xs">
+                                <span class="text-amber-600 font-bold">★ {{ book.average_rating|default:"0.0" }}</span>
+                                <a href="{% url 'book_detail' book.id %}" class="text-amber-800 font-semibold hover:underline text-[11px]">
+                                    View & Log &rarr;
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </section>
+        {% endif %}
     {% endif %}
 
 </div>

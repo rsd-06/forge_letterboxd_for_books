@@ -35,8 +35,8 @@ def home(request):
     Shows featured books, friend activity stream, popular reviews,
     and embedded FAQs on the landing page.
     """
-    popular_books = Book.objects.order_by('-ratings_count', '-average_rating')[:8]
-    recent_reviews = RatingReview.objects.select_related('user', 'book', 'user__profile').prefetch_related('comments', 'comments__user').order_by('-created_at')[:6]
+    popular_books = Book.objects.order_by('-ratings_count', '-average_rating')[:16]
+    recent_reviews = RatingReview.objects.select_related('user', 'book', 'user__profile').prefetch_related('comments', 'comments__user').order_by('-created_at')[:10]
 
     activities = []
     if request.user.is_authenticated:
@@ -95,11 +95,12 @@ def book_search(request):
     query = request.GET.get('q', '').strip()
     local_books = []
     ol_results = []
+    featured_catalog = []
 
     if query:
         local_books = list(Book.objects.filter(
             Q(title__icontains=query) | Q(author__icontains=query) | Q(genre__icontains=query)
-        )[:10])
+        )[:15])
 
         ol_results = search_open_library(query, limit=12)
 
@@ -109,11 +110,14 @@ def book_search(request):
             r for r in ol_results
             if r.get('openlibrary_key') not in local_keys and r.get('title', '').lower() not in local_titles
         ]
+    else:
+        featured_catalog = list(Book.objects.all().order_by('-ratings_count', '-average_rating'))
 
     context = {
         'query': query,
         'local_books': local_books,
         'ol_results': ol_results,
+        'featured_catalog': featured_catalog,
     }
     return render(request, 'books/search.html', context)
 
