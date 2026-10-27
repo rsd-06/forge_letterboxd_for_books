@@ -151,6 +151,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         }
+
+        // Delegate listener for all quick prefilled question buttons
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('.quick-ai-btn');
+            if (btn && btn.dataset.prompt) {
+                const prompt = btn.dataset.prompt;
+                if (chatWidget && chatWidget.classList.contains('hidden')) {
+                    chatWidget.classList.remove('hidden');
+                }
+                if (chatInput) {
+                    chatInput.value = prompt;
+                    sendChatMessage();
+                }
+            }
+        });
     }
 
     function appendChatBubble(role, text, isLiveAi = false) {
@@ -160,7 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const bubble = document.createElement('div');
         if (role === 'user') {
-            bubble.className = 'bg-[#382110] text-amber-50 rounded-2xl rounded-tr-none px-4 py-2 max-w-[85%] text-sm shadow-sm';
+            bubble.className = 'bg-[#73553C] text-amber-50 rounded-2xl rounded-tr-none px-4 py-2 max-w-[85%] text-sm shadow-sm';
             bubble.textContent = text;
         } else {
             bubble.className = 'bg-stone-100 text-stone-800 rounded-2xl rounded-tl-none px-4 py-2.5 max-w-[85%] text-sm shadow-sm border border-stone-200';

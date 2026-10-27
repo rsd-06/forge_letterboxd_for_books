@@ -28,6 +28,29 @@ python manage.py runserver
 
 ---
 
+## 📸 Visual Showcase & User Journey Clip
+
+### 🎥 Interactive User Journey Clip
+![User Flow Demo](static/screenshots/user_flow_demo.webp)
+
+*Interactive session demonstrating the refreshed warm caramel aesthetic, minimal dropdown FAQs, 5-star rating with spoiler mask, and the Ask AI companion with prefilled suggestion pills.*
+
+### 🖼️ Key Screenshots
+
+| 1. Warm Palette & Minimal Dropdown FAQs | 2. 5-Star Rating & Spoiler-Shielded Review |
+|:---:|:---:|
+| ![Home & FAQs](static/screenshots/01_home_lighter_aesthetic_dropdown_faq.png) | ![Book Rating & Review](static/screenshots/02_user1_rate_and_spoiler_review.png) |
+
+| 3. Ask AI with Prefilled Suggestion Pills | 4. Friends Social Follow & Discussion Thread |
+|:---:|:---:|
+| ![Ask AI Widget](static/screenshots/03_user1_ask_ai_prefilled_questions.png) | ![Friend Follow & Comment](static/screenshots/04_user2_friend_follow_and_comment.png) |
+
+| 5. Letterboxd-Style Live Community Activity Feed |
+|:---:|
+| ![Live Activity Feed](static/screenshots/05_community_activity_stream.png) |
+
+---
+
 ## 🚀 Key Features
 
 ### 1. 5-Star Rating System & Spoiler-Protected Reviews

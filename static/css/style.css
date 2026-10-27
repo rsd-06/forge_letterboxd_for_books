@@ -1,10 +1,10 @@
 /* Custom Goodreads-inspired styles for Bookboxd */
 
 :root {
-    --gr-brown: #382110;
+    --gr-brown: #73553C;
     --gr-parchment: #F4F1EA;
     --gr-card: #FFFFFF;
-    --gr-accent: #7A5330;
+    --gr-accent: #87674C;
     --gr-gold: #E8A838;
     --gr-border: #E8E5DD;
 }
