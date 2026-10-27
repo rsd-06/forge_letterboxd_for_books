@@ -25,11 +25,18 @@ ERROR_CODES_GUIDE = {
 def get_genai_client():
     api_key = getattr(settings, 'GEMINI_API_KEY', '') or os.getenv('GEMINI_API_KEY', '')
     if not api_key:
+        try:
+            from dotenv import load_dotenv
+            load_dotenv(override=True)
+            api_key = os.getenv('GEMINI_API_KEY', '')
+        except Exception:
+            pass
+    if not api_key:
         return None, None
     try:
         from google import genai
         client = genai.Client(api_key=api_key)
-        model = getattr(settings, 'GEMINI_MODEL', 'gemini-2.5-flash') or 'gemini-2.5-flash'
+        model = getattr(settings, 'GEMINI_MODEL', '') or os.getenv('GEMINI_MODEL', '') or 'gemini-3.5-flash'
         return client, model
     except Exception as e:
         logger.warning(f"Failed to initialize Gemini Client: {e}")
@@ -38,6 +45,13 @@ def get_genai_client():
 
 def is_gemini_configured():
     api_key = getattr(settings, 'GEMINI_API_KEY', '') or os.getenv('GEMINI_API_KEY', '')
+    if not api_key:
+        try:
+            from dotenv import load_dotenv
+            load_dotenv(override=True)
+            api_key = os.getenv('GEMINI_API_KEY', '')
+        except Exception:
+            pass
     return bool(api_key and api_key.strip() and not api_key.startswith('YOUR_'))
 
 

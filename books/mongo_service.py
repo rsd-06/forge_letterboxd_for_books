@@ -20,11 +20,18 @@ def get_mongo_db():
 
     mongo_uri = getattr(settings, 'MONGODB_URI', '') or os.getenv('MONGODB_URI', '')
     if not mongo_uri or not mongo_uri.strip():
+        try:
+            from dotenv import load_dotenv
+            load_dotenv(override=True)
+            mongo_uri = os.getenv('MONGODB_URI', '')
+        except Exception:
+            pass
+    if not mongo_uri or not mongo_uri.strip():
         return None, "Not configured (Set MONGODB_URI in .env)"
 
     try:
         from pymongo import MongoClient
-        _mongo_client = MongoClient(mongo_uri, serverSelectionTimeoutMS=2000)
+        _mongo_client = MongoClient(mongo_uri, serverSelectionTimeoutMS=5000, connectTimeoutMS=5000)
         # Test connection
         _mongo_client.admin.command('ping')
         db_name = getattr(settings, 'MONGODB_NAME', 'bookboxd')

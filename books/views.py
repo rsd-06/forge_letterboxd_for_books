@@ -1,5 +1,6 @@
 import json
 import logging
+import time
 import uuid
 import requests
 from decimal import Decimal
@@ -563,10 +564,10 @@ def health_check(request):
     third_party_status = "Online"
     third_party_latency_ms = 0
     try:
-        t0 = requests.compat.time.time()
+        t0 = time.time()
         # Strict 3.0s timeout requirement
         res = requests.get("https://openlibrary.org/search.json?q=dune&limit=1", timeout=3.0)
-        third_party_latency_ms = round((requests.compat.time.time() - t0) * 1000, 1)
+        third_party_latency_ms = round((time.time() - t0) * 1000, 1)
         if res.status_code != 200:
             third_party_status = f"Degraded (HTTP {res.status_code})"
     except requests.Timeout:
