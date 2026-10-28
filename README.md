@@ -158,6 +158,34 @@ pytest tests/test_webapp_playwright.py -v
 
 ---
 
+## 🚀 One-Click Hosting on Vercel
+
+Bookboxd is fully optimized for continuous deployment on **Vercel** serverless functions with zero friction.
+
+### Step 1: Push to GitHub
+Ensure all code is pushed to your GitHub repository:
+```bash
+git push origin main
+```
+
+### Step 2: Import into Vercel
+1. Log in to [Vercel](https://vercel.com) and click **"Add New"** > **"Project"**.
+2. Select and import your GitHub repository (`forge_letterboxd_for_books`).
+3. Leave Build Command and Output Directory as default (Vercel automatically detects `vercel.json` and runs `build_files.sh`).
+
+### Step 3: Configure Environment Variables
+Under **Environment Variables** in your Vercel Project Settings, add:
+- `DJANGO_SECRET_KEY`: Any secure random string.
+- `DJANGO_DEBUG`: `False` (or `True` during testing).
+- `GEMINI_API_KEY`: *(Optional)* Your Google Gemini API key.
+- `MONGODB_URI`: *(Optional)* Your MongoDB Atlas connection URI.
+- `DATABASE_URL`: *(Optional)* External PostgreSQL URL (e.g., from Neon or Supabase). If omitted, Bookboxd automatically runs on the bundled SQLite database copied to `/tmp/db.sqlite3`.
+
+### Step 4: Deploy!
+Click **Deploy**. Vercel will install dependencies, collect and compress static assets with WhiteNoise, and launch the serverless function.
+
+---
+
 ## 💡 Proposed Improvement
 
 **Real-Time Book Club Reading Rooms & Vector Similarity Shelf Search:**

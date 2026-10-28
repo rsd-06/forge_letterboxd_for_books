@@ -6,7 +6,9 @@ Open Library API integration, social reads, and Gemini AI.
 
 from pathlib import Path
 import os
+import shutil
 from dotenv import load_dotenv
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -22,6 +24,16 @@ DEBUG = os.getenv('DJANGO_DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = ['*']
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.vercel.app',
+    'https://*.now.sh',
+    'http://127.0.0.1:8000',
+    'http://localhost:8000',
+]
+extra_origins = os.getenv('CSRF_TRUSTED_ORIGINS', '')
+if extra_origins:
+    CSRF_TRUSTED_ORIGINS.extend([o.strip() for o in extra_origins.split(',') if o.strip()])
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -36,6 +48,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -66,12 +79,38 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# Database configuration
+# 1. External PostgreSQL (Neon, Supabase, Railway, etc.) via DATABASE_URL
+# 2. Or graceful fallback to SQLite (auto-copied to /tmp in Vercel serverless)
+DATABASE_URL = os.getenv('DATABASE_URL', '')
+
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            conn_health_checks=True,
+        )
     }
-}
+else:
+    if os.getenv('VERCEL') == '1':
+        tmp_db = Path('/tmp') / 'db.sqlite3'
+        orig_db = BASE_DIR / 'db.sqlite3'
+        if not tmp_db.exists() and orig_db.exists():
+            try:
+                shutil.copy2(orig_db, tmp_db)
+            except Exception:
+                pass
+        db_path = tmp_db if tmp_db.exists() else orig_db
+    else:
+        db_path = BASE_DIR / 'db.sqlite3'
+
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': db_path,
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -89,7 +128,16 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT = BASE_DIR / 'staticfiles_build' / 'static'
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+    },
+}
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
