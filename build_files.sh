@@ -2,7 +2,13 @@
 set -e
 
 echo "=== Installing Python dependencies ==="
-python3 -m pip install -r requirements.txt
+if command -v uv &> /dev/null; then
+    echo "Detected uv, installing dependencies..."
+    uv pip install --system -r requirements.txt || python3 -m pip install -r requirements.txt --break-system-packages
+else
+    echo "Using pip with --break-system-packages..."
+    python3 -m pip install -r requirements.txt --break-system-packages 2>/dev/null || python3 -m pip install -r requirements.txt
+fi
 
 echo "=== Collecting Static Files ==="
 python3 manage.py collectstatic --noinput --clear
